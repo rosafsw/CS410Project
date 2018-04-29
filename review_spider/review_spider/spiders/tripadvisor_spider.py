@@ -1,10 +1,13 @@
 import scrapy
 from review_spider.items import ReviewSpiderItem
 """
+This is the spider to crawl the chicago hotel reviews from the tripadvisor.
 use the command line to excute: scrapy crawl tripadvisor -o hotel_reviews.csv -s CLOSESPIDER_PAGECOUNT=1500
 """
 
+
 class TripadvisorSpider(scrapy.Spider):
+
     name = "tripadvisor"
     start_urls = [
         "https://www.tripadvisor.com/Hotels-g35805-Chicago_Illinois-Hotels.html"

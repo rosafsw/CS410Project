@@ -12,7 +12,7 @@ from PyQt5.QtCore import Qt
 
 class ReviewAnalyzer(QWidget):
 
-    # Here we define the vocabulary to better extract the keywords from the review
+    # Here we define the vocabulary to better extract the keywords from the reviews
     __pos_adj__ = 'good|great|nice|wonderful|amazing|comfortable|clean|polite|lovely|outstanding|fantastic|beautiful|large|cozy|big|accommodated|pleasant|consistent|reliable|welcoming|gracious|friendly|delightful|fresh|excellent|reasonable|helpful|favorite|ideal|decent|safe'
     __neg_adj__ = 'bad|worse|worst|terrible|horrible|noisy|awful|poor|disappointing|cheap|stained|indifferent|rude|inadequate|out of date|slow|small|loud|noisy|chilly|stiff|moldy|weak|unacceptable|dirty|moldy|rusted|incompetent'
     __noun__ = 'place|room|pool|remodel|staff|location|furniture|bathroom|TV|TV reception|hot water|shower|lobby|bar|elevator|front desk|views|view|noises|front desk staff|housekeeping|smell|service|carpet|narrow|waiters|food|price|restaurant|internet|stay|bed|sofa|branch'
@@ -50,6 +50,11 @@ class ReviewAnalyzer(QWidget):
         self.initUI()
 
     def word_count(self, review):
+        """
+        This function count the positive words and negative words in the each review
+        :param review: string
+        :return: list
+        """
         pos_count = 0
         neg_count = 0
         for word in review.split():
@@ -61,7 +66,12 @@ class ReviewAnalyzer(QWidget):
 
 
     def sentiment_tag(self, review):
-        # make sentiment tag for the review
+        """
+        This function makes sentiment tag for the review, we get the weight from experiment.
+        The constant c is used to avoid the neg_score to be zero.
+        :param review: string
+        :return: string
+        """
         c = 0.01
         adj_count = self.word_count(review)
         if adj_count[1] != 0 or adj_count[0] != 0:
@@ -84,29 +94,40 @@ class ReviewAnalyzer(QWidget):
         return sen_tag
 
     def quick_keyword_mining(self, review):
+        """
+        We use the rake_nltk to extract some keywords that not include in our self-defined list.
+        :param review: string
+        :return: list
+        """
         r = Rake()
         r.extract_keywords_from_text(review)
 
         results = r.get_ranked_phrases()
-        for i in range(5):
+        results_range = len(results) // 2
+        for i in range(results_range):
             results[i] = results[i].lower()
-        return results[:5]
+        return results[:results_range]
 
     def keyword_mining(self, review):
+        """
+        This is the major function we use to do the keyword mining.
+        :param review: string
+        :return: list
+        """
         # extract keywords from the review
         pat_list = list()
         keywords = list()
-        # nice room
+        # Example : nice room
         for i in self.__pos_adj__:
             for j in self.__noun__:
                 pat_list.append(i + ' ' + j)
 
-        # terrible room
+        # Example : terrible room
         for i in self.__neg_adj__:
             for j in self.__noun__:
                 pat_list.append(i + ' ' + j)
 
-        # room was noisy
+        # Example : room was noisy
         for n in self.__noun__:
             for b in self.__be__:
                 for pa in self.__pos_adj__:
@@ -114,7 +135,7 @@ class ReviewAnalyzer(QWidget):
                 for na in self.__neg_adj__:
                     pat_list.append(n + ' ' + b + ' ' + na)
 
-        # room was pretty bad
+        # Example : room was pretty bad
         for n in self.__noun__:
             for b in self.__be__:
                 for adv in self.__adverb__:
@@ -130,7 +151,11 @@ class ReviewAnalyzer(QWidget):
         return keywords
 
     def analyzer(self, review):
-        # combine the sentiment tagging and keywords mining
+        """
+        This function is used to combine the sentiment tagging and keywords mining and return the analysing results.
+        :param review: string
+        :return: dictionary
+        """
         analyzer_result = {}
         analyzer_result['review_tag'] = self.sentiment_tag(review)
         analyzer_result['review_keywords'] = self.keyword_mining(review)
@@ -144,6 +169,10 @@ class ReviewAnalyzer(QWidget):
         return analyzer_result
 
     def initUI(self):
+        """
+        Include the GUI to get input and display the results.
+        :return:
+        """
         # set the background color
         self.setAutoFillBackground(True)
         p = self.palette()
@@ -179,7 +208,10 @@ class ReviewAnalyzer(QWidget):
         self.setLayout(grid)
 
         def analysing():
-            # run the analyzer and display the result
+            """
+            Define the analyzer and display the results.
+            :return:
+            """
             result = self.analyzer(input_review.toPlainText())
             display_tag = str(result['review_tag'])
             display_other = result['other_keywords']
@@ -195,14 +227,18 @@ class ReviewAnalyzer(QWidget):
             analyze_result.setText(display_words)
         btn1.clicked.connect(analysing)
 
-        # clear the results and inputs
         def clear():
+            """
+            clear the results and inputs.
+            :return:
+            """
             analyze_result.setText("")
             input_review.setText("")
         btn2.clicked.connect(clear)
 
         self.setGeometry(400, 150, 600, 500)
         self.setWindowTitle("Review Analyzer")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
