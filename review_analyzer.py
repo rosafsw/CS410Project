@@ -233,7 +233,7 @@ class ReviewAnalyzer(QWidget):
             :return:
             """
             analyze_result.setText("")
-            input_review.setText("")
+            input_review.setPlainText("")
         btn2.clicked.connect(clear)
 
         self.setGeometry(400, 150, 600, 500)
